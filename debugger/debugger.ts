@@ -116,8 +116,8 @@ export namespace Debugger {
   threadIds.set(mainThread, mainThreadId);
   let nextThreadId = mainThreadId + 1;
 
-  function getThreadId(thread: Thread) {
-    return luaAssert(threadIds.get(thread));
+  function getThreadId(thread: Thread): number {
+    return threadIds.get(thread) || mainThreadId;
   }
 
   function getActiveThread() {

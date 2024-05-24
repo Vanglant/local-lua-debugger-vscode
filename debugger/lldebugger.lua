@@ -932,7 +932,7 @@ do
     threadIds[mainThread] = mainThreadId
     local nextThreadId = mainThreadId + 1
     local function getThreadId(thread)
-        return luaAssert(threadIds[thread])
+        return threadIds[thread] or mainThreadId
     end
     local function getActiveThread()
         return coroutine.running() or mainThread
