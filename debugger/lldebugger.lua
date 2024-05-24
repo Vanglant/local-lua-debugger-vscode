@@ -1684,6 +1684,18 @@ do
                     local success, result = execute(condition, debugHookStackOffset, topFrame)
                     if success and result then
                         local activeThread = getActiveThread()
+                        local activeThreadId = getThreadId(activeThread)
+                        if not activeThreadId then
+                            assert(not threadIds[activeThread])
+                            local threadId = nextThreadId
+                            nextThreadId = nextThreadId + 1
+                            threadIds[activeThread] = threadId
+                            local hook = debug.gethook()
+                            if hook == debugHook then
+                                debug.sethook(activeThread, debugHook, "l")
+                            end
+                            return threadId
+                        end
                         local conditionDisplay = ((("\"" .. breakpoint.condition) .. "\" = \"") .. tostring(result)) .. "\""
                         local breakpointFile, breakpointLine = breakpoint.sourceFile or breakpoint.file, breakpoint.sourceLine or breakpoint.line
                         Send.debugBreak(
@@ -1696,6 +1708,18 @@ do
                     end
                 else
                     local activeThread = getActiveThread()
+                    local activeThreadId = getThreadId(activeThread)
+                    if not activeThreadId then
+                        assert(not threadIds[activeThread])
+                        local threadId = nextThreadId
+                        nextThreadId = nextThreadId + 1
+                        threadIds[activeThread] = threadId
+                        local hook = debug.gethook()
+                        if hook == debugHook then
+                            debug.sethook(activeThread, debugHook, "l")
+                        end
+                        return threadId
+                    end
                     local breakpointFile, breakpointLine = breakpoint.sourceFile or breakpoint.file, breakpoint.sourceLine or breakpoint.line
                     Send.debugBreak(
                         ((("breakpoint hit: \"" .. breakpointFile) .. ":") .. tostring(breakpointLine)) .. "\"",

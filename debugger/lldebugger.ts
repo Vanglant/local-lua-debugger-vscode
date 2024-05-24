@@ -20,8 +20,8 @@
 //OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //SOFTWARE.
 
-import {luaAssert, loadLuaFile} from "./luafuncs";
-import {Debugger} from "./debugger";
+import { luaAssert, loadLuaFile } from "./luafuncs";
+import { Debugger } from "./debugger";
 
 //Set global reference by directly accessing self from TSTL exports variable
 declare const ____exports: unknown;
@@ -30,67 +30,93 @@ _G.lldebugger = _G.lldebugger || ____exports;
 //Don't buffer io
 // eslint-disable-next-line
 if (io.stdout) {
-    io.stdout.setvbuf("no");
+  io.stdout.setvbuf("no");
 }
 // eslint-disable-next-line
 if (io.stderr) {
-    io.stderr.setvbuf("no");
+  io.stderr.setvbuf("no");
 }
 
 //Start debugger globally
 export function start(breakImmediately?: boolean): void {
-    if (breakImmediately === undefined) {
-        breakImmediately = (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1");
-    }
-    Debugger.debugGlobal(breakImmediately);
+  if (breakImmediately === undefined) {
+    breakImmediately = os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1";
+  }
+  Debugger.debugGlobal(breakImmediately);
 }
 
 //Stop debugging currently debugged function
 export function finish(): void {
-    Debugger.popHook();
+  Debugger.popHook();
 }
 
 //Stop debugger completely
 export function stop(): void {
-    Debugger.clearHook();
+  Debugger.clearHook();
 }
 
 //Pull breakpoints change
 export function pullBreakpoints(): void {
-    Debugger.pullBreakpoints();
+  Debugger.pullBreakpoints();
 }
 
 //Load and debug the specified file
-export function runFile(filePath: unknown, breakImmediately?: boolean, arg?: unknown[]): LuaMultiReturn<unknown[]> {
-    if (typeof filePath !== "string") {
-        throw `expected string as first argument to runFile, but got '${type(filePath)}'`;
+export function runFile(
+  filePath: unknown,
+  breakImmediately?: boolean,
+  arg?: unknown[]
+): LuaMultiReturn<unknown[]> {
+  if (typeof filePath !== "string") {
+    throw `expected string as first argument to runFile, but got '${type(
+      filePath
+    )}'`;
+  }
+  if (breakImmediately !== undefined && typeof breakImmediately !== "boolean") {
+    throw `expected boolean as second argument to runFile, but got '${type(
+      breakImmediately
+    )}'`;
+  }
+  const env = setmetatable(
+    { arg },
+    {
+      __index: _G,
+      __newindex: (self: unknown, key: keyof typeof _G, value: unknown) => {
+        _G[key] = value;
+      },
     }
-    if (breakImmediately !== undefined && typeof breakImmediately !== "boolean") {
-        throw `expected boolean as second argument to runFile, but got '${type(breakImmediately)}'`;
-    }
-    const env = setmetatable(
-        {arg},
-        {
-            __index: _G,
-            __newindex: (self: unknown, key: keyof typeof _G, value: unknown) => { _G[key] = value; }
-        }
-    );
-    const [func] = luaAssert(...loadLuaFile(filePath, env));
-    return Debugger.debugFunction(func as Debugger.DebuggableFunction, breakImmediately, arg ?? []);
+  );
+  const [func] = luaAssert(...loadLuaFile(filePath, env));
+  return Debugger.debugFunction(
+    func as Debugger.DebuggableFunction,
+    breakImmediately,
+    arg ?? []
+  );
 }
 
 //Call and debug the specified function
-export function call(func: unknown, breakImmediately?: boolean, ...args: unknown[]): LuaMultiReturn<unknown[]> {
-    if (typeof func !== "function") {
-        throw `expected string as first argument to debugFile, but got '${type(func)}'`;
-    }
-    if (breakImmediately !== undefined && typeof breakImmediately !== "boolean") {
-        throw `expected boolean as second argument to debugFunction, but got '${type(breakImmediately)}'`;
-    }
-    return Debugger.debugFunction(func as Debugger.DebuggableFunction, breakImmediately, args);
+export function call(
+  func: unknown,
+  breakImmediately?: boolean,
+  ...args: unknown[]
+): LuaMultiReturn<unknown[]> {
+  if (typeof func !== "function") {
+    throw `expected string as first argument to debugFile, but got '${type(
+      func
+    )}'`;
+  }
+  if (breakImmediately !== undefined && typeof breakImmediately !== "boolean") {
+    throw `expected boolean as second argument to debugFunction, but got '${type(
+      breakImmediately
+    )}'`;
+  }
+  return Debugger.debugFunction(
+    func as Debugger.DebuggableFunction,
+    breakImmediately,
+    args
+  );
 }
 
 //Trigger a break at next executed line
 export function requestBreak(): void {
-    Debugger.triggerBreak();
+  Debugger.triggerBreak();
 }
