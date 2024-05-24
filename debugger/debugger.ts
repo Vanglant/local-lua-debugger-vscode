@@ -116,8 +116,8 @@ export namespace Debugger {
   threadIds.set(mainThread, mainThreadId);
   let nextThreadId = mainThreadId + 1;
 
-  function getThreadId(thread: Thread): number {
-    return threadIds.get(thread) || mainThreadId;
+  function getThreadId(thread: Thread) {
+    return luaAssert(threadIds.get(thread));
   }
 
   function getActiveThread() {
@@ -1009,7 +1009,7 @@ export namespace Debugger {
           );
           if (success && result) {
             const activeThread = getActiveThread();
-            const activeThreadId = getThreadId(activeThread);
+            const activeThreadId = threadIds.get(activeThread);
             // the thread is not registered, register it to be able to use it
             if (!activeThreadId) {
               assert(!threadIds.get(activeThread));
@@ -1040,7 +1040,7 @@ export namespace Debugger {
           }
         } else {
           const activeThread = getActiveThread();
-          const activeThreadId = getThreadId(activeThread);
+          const activeThreadId = threadIds.get(activeThread);
           // the thread is not registered, register it to be able to use it
           if (!activeThreadId) {
             assert(!threadIds.get(activeThread));

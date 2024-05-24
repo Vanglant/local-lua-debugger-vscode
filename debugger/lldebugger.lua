@@ -932,7 +932,7 @@ do
     threadIds[mainThread] = mainThreadId
     local nextThreadId = mainThreadId + 1
     local function getThreadId(thread)
-        return threadIds[thread] or mainThreadId
+        return luaAssert(threadIds[thread])
     end
     local function getActiveThread()
         return coroutine.running() or mainThread
@@ -1684,7 +1684,7 @@ do
                     local success, result = execute(condition, debugHookStackOffset, topFrame)
                     if success and result then
                         local activeThread = getActiveThread()
-                        local activeThreadId = getThreadId(activeThread)
+                        local activeThreadId = threadIds[activeThread]
                         if not activeThreadId then
                             assert(not threadIds[activeThread])
                             local threadId = nextThreadId
@@ -1708,7 +1708,7 @@ do
                     end
                 else
                     local activeThread = getActiveThread()
-                    local activeThreadId = getThreadId(activeThread)
+                    local activeThreadId = threadIds[activeThread]
                     if not activeThreadId then
                         assert(not threadIds[activeThread])
                         local threadId = nextThreadId
